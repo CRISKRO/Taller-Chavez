@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Control de Taller Chavez{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class='bx bx-wrench'></i>
+            <span>Taller Chavez</span>
+        </div>
+        <ul class="nav-links">
+            <a href="{% url 'dashboard' %}">
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class='bx bxs-dashboard'></i> Dashboard
+                </li>
+            </a>
+            <a href="{% url 'usuarios_lista' %}">
+                <li class="{% if 'usuario' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class='bx bx-user'></i> Usuarios
+                </li>
+            </a>
+            <a href="{% url 'clientes_lista' %}">
+                <li class="{% if 'cliente' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class='bx bx-group'></i> Clientes
+                </li>
+            </a>
+            <a href="{% url 'ordenes_lista' %}">
+                <li class="{% if 'orden' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class='bx bx-file'></i> Órdenes de Servicio
+                </li>
+            </a>
+            <a href="{% url 'inventario_lista' %}">
+                <li class="{% if 'inventario' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class='bx bx-box'></i> Inventario
+                </li>
+            </a>
+            <a href="{% url 'facturacion_lista' %}">
+                <li class="{% if 'factura' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class='bx bx-dollar'></i> Facturación
+                </li>
+            </a>
+        </ul>
+        <a href="{% url 'logout' %}" style="text-decoration: none; color: inherit; margin-top: auto;">
+            <div class="logout-btn">
+                <i class='bx bx-log-out'></i>
+                <span>Cerrar Sesión</span>
+            </div>
+        </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+            <div class="user-profile">
+                <span>{{ request.user.first_name|default:request.user.username|default:"Admin User" }}</span>
+                <div class="avatar">
+                    {{ request.user.first_name|default:request.user.username|default:"A"|make_list|first|upper }}
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Global Scripts -->
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

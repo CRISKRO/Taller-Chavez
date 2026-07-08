@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Taller Chavez{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-icon"><i class='bx bx-clipboard'></i></div>
+        <div class="stat-title">Órdenes Activas</div>
+        <div class="stat-value">12</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon"><i class='bx bx-dollar'></i></div>
+        <div class="stat-title">Pendiente de Cobro</div>
+        <div class="stat-value">$8,450</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-icon"><i class='bx bx-package'></i></div>
+        <div class="stat-title">Items Bajo Stock</div>
+        <div class="stat-value">5</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-icon"><i class='bx bx-user'></i></div>
+        <div class="stat-title">Clientes Activos</div>
+        <div class="stat-value">87</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card-table">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="card-table-header" style="margin-bottom: 0;">Órdenes Recientes</div>
+        <input type="text" id="busquedaOrdenes" placeholder="Buscar orden..." style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; width: 250px;">
+    </div>
+    <table id="tablaOrdenes">
+        <thead>
+            <tr>
+                <th>ORDEN</th>
+                <th>CLIENTE</th>
+                <th>VEHÍCULO</th>
+                <th>ESTADO</th>
+                <th>MECÁNICO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="color: var(--primary-blue); font-weight: bold;">OT-001</td>
+                <td>Juan Pérez</td>
+                <td>Toyota Corolla 2018</td>
+                <td><span class="badge en-proceso"><i class='bx bx-time'></i> En Proceso</span></td>
+                <td>Carlos R.</td>
+            </tr>
+            <tr>
+                <td style="color: var(--primary-blue); font-weight: bold;">OT-002</td>
+                <td>María García</td>
+                <td>Honda Civic 2020</td>
+                <td><span class="badge completado"><i class='bx bx-check'></i> Completado</span></td>
+                <td>Luis M.</td>
+            </tr>
+            <tr>
+                <td style="color: var(--primary-blue); font-weight: bold;">OT-003</td>
+                <td>Pedro Sánchez</td>
+                <td>Ford Focus 2019</td>
+                <td><span class="badge recibido"><i class='bx bx-info-circle'></i> Recibido</span></td>
+                <td>Sin asignar</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.getElementById('busquedaOrdenes').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tablaOrdenes tbody tr');
+        
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            if(text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<!-- Actions -->
+<div class="actions-grid">
+    <div class="action-btn blue" onclick="window.location.href='{% url 'ordenes_lista' %}'" style="cursor: pointer;">
+        <i class='bx bx-clipboard'></i>
+        <span>Nueva Orden de Servicio</span>
+        <small>Crear nueva OT</small>
+    </div>
+    <div class="action-btn green" onclick="window.location.href='{% url 'facturacion_lista' %}'" style="cursor: pointer;">
+        <i class='bx bx-dollar-circle'></i>
+        <span>Registrar Cobro</span>
+        <small>Nueva factura</small>
+    </div>
+    <div class="action-btn purple" onclick="window.location.href='{% url 'clientes_lista' %}'" style="cursor: pointer;">
+        <i class='bx bx-user-plus'></i>
+        <span>Nuevo Cliente</span>
+        <small>Registrar cliente</small>
+    </div>
+</div>
+{% endblock %}

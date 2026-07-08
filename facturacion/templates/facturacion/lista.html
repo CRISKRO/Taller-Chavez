@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Facturación - Taller Chavez{% endblock %}
+{% block page_title %}Facturación y Cobros{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="color: var(--text-muted);">Listado de facturas y control de pagos</p>
+    <button onclick="openModal('modalFactura')" style="background: var(--success-green); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;">
+        <i class='bx bx-plus'></i> Nueva Factura
+    </button>
+</div>
+
+<div class="card-table">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="card-table-header" style="margin-bottom: 0;">Historial de Facturas</div>
+        <input type="text" placeholder="Buscar factura..." style="padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; width: 250px;">
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID FACTURA</th>
+                <th>ORDEN ASOCIADA</th>
+                <th>CLIENTE</th>
+                <th>FECHA EMISIÓN</th>
+                <th>TOTAL</th>
+                <th>MÉTODO</th>
+                <th>ESTADO</th>
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factura in facturas %}
+            <tr>
+                <td style="color: var(--primary-blue); font-weight: bold;">FAC-{{ factura.id|stringformat:"04d" }}</td>
+                <td><a href="#" style="color: var(--text-main); font-weight: 500; text-decoration: underline;">OT-{{ factura.orden.numero }}</a></td>
+                <td>{{ factura.orden.cliente.nombre }}</td>
+                <td>{{ factura.fecha_emision|date:"Y-m-d" }}</td>
+                <td style="font-weight: bold;">${{ factura.total }}</td>
+                <td>{{ factura.get_metodo_pago_display|default:"-" }}</td>
+                <td>
+                    {% if factura.estado == 'PAGADO' %}
+                        <span class="badge completado"><i class='bx bx-check'></i> Pagado</span>
+                    {% else %}
+                        <span class="badge" style="background: #fff3e0; color: #fb8c00;"><i class='bx bx-time'></i> Pendiente</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 18px; color: var(--text-muted); display: flex; gap: 10px;">
+                    <a href="{% url 'generar_pdf_factura' factura.id %}" target="_blank" style="text-decoration: none; color: inherit;">
+                        <i class='bx bx-download' style="cursor: pointer; color: var(--primary-blue);" title="Descargar PDF"></i>
+                    </a>
+                    {% if factura.estado == 'PENDIENTE' %}
+                        <i class='bx bx-dollar-circle' style="cursor: pointer; color: var(--success-green);" title="Registrar Pago"></i>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px;">No hay facturas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Nueva Factura -->
+<div class="modal-overlay" id="modalFactura">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Generar Nueva Factura</h3>
+            <i class='bx bx-x modal-close' onclick="closeModal('modalFactura')"></i>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Orden de Servicio Asociada</label>
+                    {{ form.orden }}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Monto Total ($)</label>
+                        {{ form.total }}
+                    </div>
+                    <div class="form-group">
+                        <label>Estado del Pago</label>
+                        {{ form.estado }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    {{ form.metodo_pago }}
+                </div>
+                <div class="form-group">
+                    <label>Notas Adicionales</label>
+                    {{ form.notas }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modalFactura')">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Generar Factura</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

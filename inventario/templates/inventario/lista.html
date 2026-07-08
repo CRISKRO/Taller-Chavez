@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario - Taller Chavez{% endblock %}
+{% block page_title %}Inventario{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="color: var(--text-muted);">Control de repuestos y materiales</p>
+    <button onclick="openModal('modalInventario')" style="background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;">
+        <i class='bx bx-plus'></i> Agregar Ítem
+    </button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #e3f2fd; color: var(--primary-blue); width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-box'></i></div>
+        <div>
+            <div class="stat-title">Total Ítems</div>
+            <div class="stat-value" style="font-size: 20px;">{{ articulos.count }}</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #fff3e0; color: #fb8c00; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-error'></i></div>
+        <div>
+            <div class="stat-title">Bajo Stock</div>
+            <div class="stat-value" style="font-size: 20px; color: #fb8c00;">-</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #e8f5e9; color: #43a047; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-check-circle'></i></div>
+        <div>
+            <div class="stat-title">En Stock</div>
+            <div class="stat-value" style="font-size: 20px; color: #43a047;">-</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #f3e5f5; color: var(--purple); width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-cube-alt'></i></div>
+        <div>
+            <div class="stat-title">Valor Inventario</div>
+            <div class="stat-value" style="font-size: 20px; color: var(--purple);">-</div>
+        </div>
+    </div>
+</div>
+
+<div class="card-table">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="card-table-header" style="margin-bottom: 0;">Inventario de Repuestos</div>
+        <input type="text" placeholder="Buscar repuesto..." style="padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; width: 250px;">
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>PRODUCTO</th>
+                <th>CATEGORÍA</th>
+                <th>STOCK</th>
+                <th>PRECIO UNIT.</th>
+                <th>UBICACIÓN</th>
+                <th>ESTADO</th>
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for articulo in articulos %}
+            <tr>
+                <td style="color: var(--primary-blue); font-weight: bold;">{{ articulo.codigo }}</td>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-main);">{{ articulo.nombre }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">{{ articulo.descripcion|truncatechars:30 }}</div>
+                </td>
+                <td>
+                    <span style="background: var(--light-bg); color: var(--text-muted); padding: 5px 10px; border-radius: 15px; font-size: 12px;">{{ articulo.categoria.nombre|default:"Sin Categoria" }}</span>
+                </td>
+                <td>
+                    <div style="font-weight: bold; font-size: 15px;">{{ articulo.stock_actual }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Min: {{ articulo.stock_minimo }}</div>
+                </td>
+                <td style="font-weight: bold;">${{ articulo.precio_unitario }}</td>
+                <td style="color: var(--text-muted); font-size: 13px;">{{ articulo.ubicacion|default:"No asignada" }}</td>
+                <td>
+                    {% if articulo.stock_actual <= 0 or articulo.stock_actual < articulo.stock_minimo|add:"-2" %}
+                        <span class="badge" style="background: #ffebee; color: #e53935;"><i class='bx bx-error'></i> Crítico</span>
+                    {% elif articulo.stock_actual <= articulo.stock_minimo %}
+                        <span class="badge" style="background: #fff3e0; color: #fb8c00;"><i class='bx bx-trending-down'></i> Bajo Stock</span>
+                    {% else %}
+                        <span class="badge completado"><i class='bx bx-check'></i> En Stock</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 18px; color: var(--primary-blue);">
+                    <i class='bx bx-edit' style="cursor: pointer;"></i>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 20px;">No hay artículos en el inventario.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Agregar Item -->
+<div class="modal-overlay" id="modalInventario">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Agregar Nuevo Ítem al Inventario</h3>
+            <i class='bx bx-x modal-close' onclick="closeModal('modalInventario')"></i>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Código</label>
+                        {{ form.codigo }}
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Categoría</span>
+                            <span onclick="closeModal('modalInventario'); openModal('modalCategoria')" style="color: var(--primary-blue); cursor: pointer; font-size: 12px; font-weight: 500;">+ Nueva Categoría</span>
+                        </label>
+                        {{ form.categoria }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    {{ form.nombre }}
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Stock Actual</label>
+                        {{ form.stock_actual }}
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Mínimo</label>
+                        {{ form.stock_minimo }}
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unit.</label>
+                        {{ form.precio_unitario }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación (Almacén/Estante)</label>
+                        {{ form.ubicacion }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modalInventario')">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Ítem</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nueva Categoría -->
+<div class="modal-overlay" id="modalCategoria">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Crear Nueva Categoría</h3>
+            <i class='bx bx-x modal-close' onclick="closeModal('modalCategoria')"></i>
+        </div>
+        <form method="POST" action="{% url 'categoria_crear' %}">
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Nombre de la Categoría</label>
+                    {{ categoria_form.nombre }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modalCategoria'); openModal('modalInventario')">Volver</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Categoría</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

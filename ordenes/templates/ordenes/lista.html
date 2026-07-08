@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Órdenes de Servicio - Taller Chavez{% endblock %}
+{% block page_title %}Órdenes de Servicio{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="color: var(--text-muted);">Gestiona las órdenes de trabajo del taller</p>
+    <button onclick="openModal('modalOrden')" style="background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;">
+        <i class='bx bx-plus'></i> Nueva Orden de Servicio
+    </button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #fff3e0; color: #fb8c00; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-error-circle'></i></div>
+        <div>
+            <div class="stat-title">Recibidas</div>
+            <div class="stat-value" style="font-size: 20px;">1</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #e3f2fd; color: #1e88e5; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-time'></i></div>
+        <div>
+            <div class="stat-title">En Proceso</div>
+            <div class="stat-value" style="font-size: 20px;">2</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #e8f5e9; color: #43a047; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-check-circle'></i></div>
+        <div>
+            <div class="stat-title">Completadas</div>
+            <div class="stat-value" style="font-size: 20px;">2</div>
+        </div>
+    </div>
+    <div class="stat-card" style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: #f3e5f5; color: var(--purple); width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;"><i class='bx bx-wrench'></i></div>
+        <div>
+            <div class="stat-title">Total Hoy</div>
+            <div class="stat-value" style="font-size: 20px;">{{ ordenes.count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card-table">
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 14px;">
+        <span style="color: var(--text-muted);">Filtrar por estado:</span>
+        <button style="background: var(--primary-blue); color: white; border: none; padding: 6px 15px; border-radius: 15px; font-weight: 500; cursor: pointer;">Todas</button>
+        <button style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 15px; border-radius: 15px; font-weight: 500; cursor: pointer;">Recibido</button>
+        <button style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 15px; border-radius: 15px; font-weight: 500; cursor: pointer;">En Proceso</button>
+        <button style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 15px; border-radius: 15px; font-weight: 500; cursor: pointer;">Completado</button>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for orden in ordenes %}
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="font-size: 18px; font-weight: bold; color: var(--primary-blue);">OT-{{ orden.numero }}</div>
+                    {% if orden.estado == 'EN_PROCESO' %}
+                        <span class="badge en-proceso"><i class='bx bx-time'></i> En Proceso</span>
+                    {% elif orden.estado == 'COMPLETADO' %}
+                        <span class="badge completado"><i class='bx bx-check'></i> Completado</span>
+                    {% else %}
+                        <span class="badge recibido"><i class='bx bx-info-circle'></i> Recibido</span>
+                    {% endif %}
+                    
+                    {% if orden.prioridad == 'ALTA' %}
+                        <span class="badge" style="background: #ffebee; color: #e53935;">Prioridad Alta</span>
+                    {% elif orden.prioridad == 'MEDIA' %}
+                        <span class="badge" style="background: #fff3e0; color: #fb8c00;">Prioridad Media</span>
+                    {% else %}
+                        <span class="badge" style="background: #e8f5e9; color: #43a047;">Prioridad Baja</span>
+                    {% endif %}
+                    
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 10px;">{{ orden.fecha_creacion|date:"Y-m-d" }}</span>
+                </div>
+                <button style="background: transparent; color: var(--primary-blue); border: 1px solid var(--primary-blue); padding: 5px 15px; border-radius: 15px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <i class='bx bx-show'></i> Ver Detalles
+                </button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-user'></i> Cliente</div>
+                    <div style="font-weight: 600;">{{ orden.cliente.nombre }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-car'></i> Vehículo</div>
+                    <div style="font-weight: 600;">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">{{ orden.vehiculo.placa }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-wrench'></i> Mecánico</div>
+                    <div style="font-weight: 600;">{{ orden.mecanico.first_name|default:"Sin asignar" }} {{ orden.mecanico.last_name }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-time-five'></i> Tiempo Estimado</div>
+                    <div style="font-weight: 600;">{{ orden.tiempo_estimado|default:"N/A" }}</div>
+                </div>
+            </div>
+            
+            <div style="background: var(--light-bg); border-radius: 8px; padding: 15px;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Servicios a Realizar:</div>
+                <div style="display: flex; gap: 10px;">
+                    <span style="background: white; border: 1px solid var(--border-color); padding: 5px 15px; border-radius: 20px; font-size: 13px;">{{ orden.descripcion|default:"Revisión general"|truncatechars:50 }}</span>
+                </div>
+                <div style="margin-top: 15px; font-size: 14px;">
+                    Costo estimado: <span style="font-weight: bold; color: var(--text-main);">${{ orden.costo_estimado }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 20px; color: var(--text-muted);">No hay órdenes registradas.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Nueva Orden -->
+<div class="modal-overlay" id="modalOrden">
+    <div class="modal-container" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Nueva Orden de Servicio</h3>
+            <i class='bx bx-x modal-close' onclick="closeModal('modalOrden')"></i>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Número de Orden (OT-)</label>
+                        {{ form.numero }}
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridad</label>
+                        {{ form.prioridad }}
+                    </div>
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        {{ form.cliente }}
+                    </div>
+                    <div class="form-group">
+                        <label>Vehículo</label>
+                        {{ form.vehiculo }}
+                    </div>
+                    <div class="form-group">
+                        <label>Mecánico Asignado</label>
+                        {{ form.mecanico }}
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        {{ form.estado }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción de los Servicios</label>
+                    {{ form.descripcion }}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Costo Estimado ($)</label>
+                        {{ form.costo_estimado }}
+                    </div>
+                    <div class="form-group">
+                        <label>Tiempo Estimado</label>
+                        {{ form.tiempo_estimado }}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modalOrden')">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Orden</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

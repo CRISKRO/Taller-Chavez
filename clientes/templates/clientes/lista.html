@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - Taller Chavez{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="color: var(--text-muted);">Gestiona clientes y sus vehículos</p>
+    <button onclick="openModal('modalCliente')" style="background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;">
+        <i class='bx bx-plus'></i> Nuevo Cliente
+    </button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Total Clientes</div>
+        <div class="stat-value">{{ clientes.count }}</div>
+    </div>
+    <div class="stat-card" style="color: var(--primary-blue);">
+        <div class="stat-title">Vehículos Registrados</div>
+        <div class="stat-value">124</div>
+    </div>
+    <div class="stat-card" style="color: var(--success-green);">
+        <div class="stat-title">Nuevos este Mes</div>
+        <div class="stat-value">8</div>
+    </div>
+    <div class="stat-card" style="color: var(--purple);">
+        <div class="stat-title">Clientes Frecuentes</div>
+        <div class="stat-value">23</div>
+    </div>
+</div>
+
+<div class="card-table">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="card-table-header" style="margin-bottom: 0;">Lista de Clientes</div>
+        <input type="text" placeholder="Buscar cliente..." style="padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; width: 250px;">
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for cliente in clientes %}
+        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <div style="display: flex; gap: 15px;">
+                    <div class="avatar" style="width: 45px; height: 45px; font-size: 16px;">
+                        {{ cliente.nombre|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: bold; font-size: 16px; color: var(--text-main);">{{ cliente.nombre }}</div>
+                        <div style="color: var(--text-muted); font-size: 13px; display: flex; flex-direction: column; gap: 3px; margin-top: 5px;">
+                            <span><i class='bx bx-envelope'></i> {{ cliente.email|default:"Sin correo" }}</span>
+                            <span><i class='bx bx-phone'></i> {{ cliente.telefono }}</span>
+                            <span><i class='bx bx-map'></i> {{ cliente.direccion|default:"Sin dirección" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; color: var(--text-muted);">Última visita</div>
+                    <div style="font-weight: 500; margin-bottom: 10px;">{{ cliente.fecha_registro|date:"Y-m-d" }}</div>
+                    <div style="color: var(--primary-blue); font-size: 18px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <i class='bx bx-edit' style="cursor: pointer;"></i>
+                        <i class='bx bx-history' style="cursor: pointer;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: var(--light-bg); border-radius: 10px; padding: 15px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 5px;"><i class='bx bx-car'></i> Vehículos ({{ cliente.vehiculos.count }})</span>
+                    <button onclick="openModal('modalVehiculo{{ cliente.id }}')" style="background: var(--primary-blue); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;">+ Añadir Vehículo</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    {% for vehiculo in cliente.vehiculos.all %}
+                    <div style="background: white; border-radius: 8px; padding: 12px; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div style="background: #e3f2fd; color: #1e88e5; border-radius: 5px; padding: 8px;"><i class='bx bx-car'></i></div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">{{ vehiculo.marca }} {{ vehiculo.modelo }}</div>
+                                <div style="color: var(--text-muted); font-size: 12px;">{{ vehiculo.anio }}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                            <span>Placa:</span> <span style="font-weight: 600; color: var(--text-main);">{{ vehiculo.placa }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 5px;">
+                            <span>Kilometraje:</span> <span style="font-weight: 600; color: var(--text-main);">{{ vehiculo.kilometraje }} km</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Modal Nuevo Vehículo -->
+            <div class="modal-overlay" id="modalVehiculo{{ cliente.id }}">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h3>Registrar Vehículo para {{ cliente.nombre }}</h3>
+                        <i class='bx bx-x modal-close' onclick="closeModal('modalVehiculo{{ cliente.id }}')"></i>
+                    </div>
+                    <form method="POST" action="{% url 'vehiculo_crear' cliente.id %}">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label>Marca</label>
+                                    {{ vehiculo_form.marca }}
+                                </div>
+                                <div class="form-group">
+                                    <label>Modelo</label>
+                                    {{ vehiculo_form.modelo }}
+                                </div>
+                                <div class="form-group">
+                                    <label>Año</label>
+                                    {{ vehiculo_form.anio }}
+                                </div>
+                                <div class="form-group">
+                                    <label>Placa</label>
+                                    {{ vehiculo_form.placa }}
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Kilometraje Inicial</label>
+                                {{ vehiculo_form.kilometraje }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('modalVehiculo{{ cliente.id }}')">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Vehículo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 20px; color: var(--text-muted);">No hay clientes registrados.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Nuevo Cliente -->
+<div class="modal-overlay" id="modalCliente">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Registrar Nuevo Cliente</h3>
+            <i class='bx bx-x modal-close' onclick="closeModal('modalCliente')"></i>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    {{ form.nombre }}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        {{ form.telefono }}
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        {{ form.email }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    {{ form.direccion }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
