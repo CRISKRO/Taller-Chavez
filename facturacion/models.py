@@ -16,7 +16,7 @@ class Factura(models.Model):
         ('TARJETA_CREDITO', 'Tarjeta de Crédito'),
         ('TARJETA_DEBITO', 'Tarjeta de Débito'),
         ('TRANSFERENCIA', 'Transferencia Bancaria'),
-        ('OTRO', 'Otro'),
+        ('OTRO', 'Otro'), 
     )
     fecha_emision = models.DateTimeField(auto_now_add=True)
     metodo_pago = models.CharField(max_length=50, choices=METODOS_PAGO, blank=True, null=True)

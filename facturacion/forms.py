@@ -12,3 +12,5 @@ class FacturaForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+ 
+           
