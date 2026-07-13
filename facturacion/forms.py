@@ -13,4 +13,4 @@ class FacturaForm(forms.ModelForm):
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
  
-         
+           
