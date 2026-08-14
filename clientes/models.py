@@ -15,8 +15,10 @@ class Vehiculo(models.Model):
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     anio = models.IntegerField()
+    color = models.CharField(max_length=30, default='Sin especificar')
     placa = models.CharField(max_length=20, unique=True)
+    vin = models.CharField(max_length=17, unique=True, null=True, blank=True)
     kilometraje = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.marca} {self.modelo} - {self.placa}"
+        return f"{self.marca} {self.modelo} ({self.color}) - {self.placa}"

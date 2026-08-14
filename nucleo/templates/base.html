@@ -22,21 +22,33 @@
                     <i class='bx bxs-dashboard'></i> Dashboard
                 </li>
             </a>
+            {% if request.user.rol == 'ADMIN' %}
             <a href="{% url 'usuarios_lista' %}">
                 <li class="{% if 'usuario' in request.resolver_match.url_name %}active{% endif %}">
                     <i class='bx bx-user'></i> Usuarios
                 </li>
             </a>
+            {% endif %}
+            {% if request.user.rol == 'ADMIN' or request.user.rol == 'RECEPCIONISTA' %}
             <a href="{% url 'clientes_lista' %}">
                 <li class="{% if 'cliente' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class='bx bx-group'></i> Clientes
+                    <i class='bx bx-group'></i> Clientes & Vehículos
                 </li>
             </a>
+            {% endif %}
             <a href="{% url 'ordenes_lista' %}">
-                <li class="{% if 'orden' in request.resolver_match.url_name %}active{% endif %}">
+                <li class="{% if 'orden' in request.resolver_match.url_name and request.resolver_match.url_name != 'ordenes_bandeja' %}active{% endif %}">
                     <i class='bx bx-file'></i> Órdenes de Servicio
                 </li>
             </a>
+            {% if request.user.rol == 'MECANICO' or request.user.rol == 'ADMIN' %}
+            <a href="{% url 'ordenes_bandeja' %}">
+                <li class="{% if request.resolver_match.url_name == 'ordenes_bandeja' %}active{% endif %}">
+                    <i class='bx bx-wrench'></i> Bandeja Técnica
+                </li>
+            </a>
+            {% endif %}
+            {% if request.user.rol == 'ADMIN' or request.user.rol == 'RECEPCIONISTA' %}
             <a href="{% url 'inventario_lista' %}">
                 <li class="{% if 'inventario' in request.resolver_match.url_name %}active{% endif %}">
                     <i class='bx bx-box'></i> Inventario
@@ -47,6 +59,7 @@
                     <i class='bx bx-dollar'></i> Facturación
                 </li>
             </a>
+            {% endif %}
         </ul>
         <a href="{% url 'logout' %}" style="text-decoration: none; color: inherit; margin-top: auto;">
             <div class="logout-btn">
@@ -61,14 +74,31 @@
         <header class="top-header">
             <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
             <div class="user-profile">
-                <span>{{ request.user.first_name|default:request.user.username|default:"Admin User" }}</span>
+                <div style="text-align: right; margin-right: 10px;">
+                    <div style="font-weight: 600; font-size: 14px;">{{ request.user.first_name|default:request.user.username }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">{{ request.user.get_rol_display }}</div>
+                </div>
                 <div class="avatar">
-                    {{ request.user.first_name|default:request.user.username|default:"A"|make_list|first|upper }}
+                    {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
                 </div>
             </div>
         </header>
 
         <div class="content-wrapper">
+            {% if messages %}
+                <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    {% for message in messages %}
+                        <div style="padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px;
+                            {% if message.tags == 'error' %}background: #ffebee; color: #c62828; border: 1px solid #ffcdd2;
+                            {% elif message.tags == 'success' %}background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;
+                            {% elif message.tags == 'warning' %}background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2;
+                            {% else %}background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;{% endif %}">
+                            <i class='bx {% if message.tags == 'error' %}bx-error-circle{% elif message.tags == 'success' %}bx-check-circle{% else %}bx-info-circle{% endif %}' style="font-size: 18px;"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             {% block content %}
             {% endblock %}
         </div>

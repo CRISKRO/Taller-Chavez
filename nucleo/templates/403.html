@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Acceso Denegado (403) - Taller Chávez{% endblock %}
+{% block page_title %}Error 403 - Acceso Restringido{% endblock %}
+
+{% block content %}
+<div style="background: white; border-radius: 15px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: #ffebee; color: #d32f2f; display: flex; align-items: center; justify-content: center; font-size: 45px; margin: 0 auto 20px;">
+        <i class='bx bx-shield-x'></i>
+    </div>
+    <h2 style="color: #2b3674; margin-bottom: 10px; font-size: 24px;">Quality Gate: Acceso No Autorizado</h2>
+    <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+        Tu rol actual (<strong>{{ request.user.get_rol_display|default:"Usuario" }}</strong>) no tiene los permisos necesarios para acceder a este módulo según la matriz de seguridad y reglas de negocio del taller.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 15px;">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 500;">
+            <i class='bx bx-home'></i> Volver al Inicio
+        </a>
+        {% if request.user.rol == 'MECANICO' %}
+        <a href="{% url 'ordenes_bandeja' %}" class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 500;">
+            <i class='bx bx-wrench'></i> Mi Bandeja Técnica
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

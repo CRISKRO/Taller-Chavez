@@ -77,8 +77,12 @@
         </div>
         <form method="POST">
             {% csrf_token %}
-            {% if form.errors %}
-                <div class="error">Usuario o contraseña incorrectos.</div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error">{{ message }}</div>
+                {% endfor %}
+            {% elif form.errors %}
+                <div class="error">Credenciales inválidas.</div>
             {% endif %}
             <div class="form-group">
                 <label>Usuario</label>

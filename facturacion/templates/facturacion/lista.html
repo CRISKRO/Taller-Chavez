@@ -1,62 +1,122 @@
 {% extends 'base.html' %}
 
-{% block title %}Facturación - Taller Chavez{% endblock %}
-{% block page_title %}Facturación y Cobros{% endblock %}
+{% block title %}Facturación y Caja - Taller Chavez{% endblock %}
+{% block page_title %}Facturación y Liquidaciones (Caja){% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <p style="color: var(--text-muted);">Listado de facturas y control de pagos</p>
+    <p style="color: var(--text-muted); margin: 0;">Control transaccional de pagos, anticipos y emisión de comprobantes (TC-FAC-01)</p>
     <button onclick="openModal('modalFactura')" style="background: var(--success-green); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;">
-        <i class='bx bx-plus'></i> Nueva Factura
+        <i class='bx bx-plus'></i> Nueva Factura / Cuenta
     </button>
 </div>
 
 <div class="card-table">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div class="card-table-header" style="margin-bottom: 0;">Historial de Facturas</div>
-        <input type="text" placeholder="Buscar factura..." style="padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; width: 250px;">
+        <div class="card-table-header" style="margin-bottom: 0;">Historial de Cuentas y Facturas</div>
+        <input type="text" id="busquedaFacturas" placeholder="Buscar factura, orden, cliente..." style="padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; width: 280px;">
     </div>
-    <table>
+    <table id="tablaFacturas">
         <thead>
             <tr>
-                <th>ID FACTURA</th>
-                <th>ORDEN ASOCIADA</th>
-                <th>CLIENTE</th>
-                <th>FECHA EMISIÓN</th>
+                <th>FACTURA</th>
+                <th>ORDEN</th>
+                <th>CLIENTE / VEHÍCULO</th>
                 <th>TOTAL</th>
+                <th>ANTICIPO</th>
+                <th>A LIQUIDAR</th>
                 <th>MÉTODO</th>
                 <th>ESTADO</th>
-                <th>ACCIONES</th>
+                <th>COMPROBANTE</th>
             </tr>
         </thead>
         <tbody>
             {% for factura in facturas %}
             <tr>
                 <td style="color: var(--primary-blue); font-weight: bold;">FAC-{{ factura.id|stringformat:"04d" }}</td>
-                <td><a href="#" style="color: var(--text-main); font-weight: 500; text-decoration: underline;">OT-{{ factura.orden.numero }}</a></td>
-                <td>{{ factura.orden.cliente.nombre }}</td>
-                <td>{{ factura.fecha_emision|date:"Y-m-d" }}</td>
-                <td style="font-weight: bold;">${{ factura.total }}</td>
+                <td>
+                    <a href="{% url 'orden_detalle' factura.orden.id %}" style="color: var(--text-main); font-weight: 600; text-decoration: underline;">
+                        OT-{{ factura.orden.numero }}
+                    </a>
+                </td>
+                <td>
+                    <div style="font-weight: 600;">{{ factura.orden.cliente.nombre }}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">{{ factura.orden.vehiculo.marca }} {{ factura.orden.vehiculo.modelo }} ({{ factura.orden.vehiculo.placa }})</div>
+                </td>
+                <td style="font-weight: 600;">${{ factura.total|floatformat:2 }}</td>
+                <td style="color: var(--success-green); font-weight: 600;">-${{ factura.anticipo_aplicado|floatformat:2 }}</td>
+                <td style="font-weight: bold; color: {% if factura.estado == 'PAGADO' %}var(--text-muted){% else %}#d32f2f{% endif %};">
+                    ${{ factura.saldo_pendiente|floatformat:2 }}
+                </td>
                 <td>{{ factura.get_metodo_pago_display|default:"-" }}</td>
                 <td>
                     {% if factura.estado == 'PAGADO' %}
-                        <span class="badge completado"><i class='bx bx-check'></i> Pagado</span>
+                        <span class="badge completado"><i class='bx bx-check-double'></i> Liquidado</span>
                     {% else %}
-                        <span class="badge" style="background: #fff3e0; color: #fb8c00;"><i class='bx bx-time'></i> Pendiente</span>
+                        <span class="badge" style="background: #fff3e0; color: #fb8c00; cursor: pointer;" onclick="openModal('modalPagar{{ factura.id }}')">
+                            <i class='bx bx-time'></i> Pendiente de Cobro
+                        </span>
                     {% endif %}
                 </td>
-                <td style="font-size: 18px; color: var(--text-muted); display: flex; gap: 10px;">
-                    <a href="{% url 'generar_pdf_factura' factura.id %}" target="_blank" style="text-decoration: none; color: inherit;">
-                        <i class='bx bx-download' style="cursor: pointer; color: var(--primary-blue);" title="Descargar PDF"></i>
-                    </a>
-                    {% if factura.estado == 'PENDIENTE' %}
-                        <i class='bx bx-dollar-circle' style="cursor: pointer; color: var(--success-green);" title="Registrar Pago"></i>
-                    {% endif %}
+                <td>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        {% if factura.estado == 'PAGADO' %}
+                            <a href="{% url 'generar_pdf_factura' factura.id %}" target="_blank" class="btn btn-primary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Descargar PDF">
+                                <i class='bx bx-file-blank'></i> PDF
+                            </a>
+                        {% else %}
+                            <button onclick="openModal('modalPagar{{ factura.id }}')" style="background: var(--success-green); color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 3px;">
+                                <i class='bx bx-dollar'></i> Cobrar
+                            </button>
+                            <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">(PDF Bloqueado)</span>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
+
+            <!-- Modal Registrar Pago -->
+            <div class="modal-overlay" id="modalPagar{{ factura.id }}">
+                <div class="modal-container" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>Registrar Pago: Factura FAC-{{ factura.id|stringformat:"04d" }}</h3>
+                        <i class='bx bx-x modal-close' onclick="closeModal('modalPagar{{ factura.id }}')"></i>
+                    </div>
+                    <form method="POST" action="{% url 'factura_registrar_pago' factura.id %}">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Total Servicio:</span>
+                                    <strong>${{ factura.total|floatformat:2 }}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--success-green);">
+                                    <span>Anticipo Previsto:</span>
+                                    <strong>-${{ factura.anticipo_aplicado|floatformat:2 }}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px dashed var(--border-color); padding-top: 5px; color: #d32f2f;">
+                                    <span>MONTO A COBRAR:</span>
+                                    <span>${{ factura.saldo_pendiente|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Método de Pago *</label>
+                                {{ pago_form.metodo_pago }}
+                            </div>
+                            <div class="form-group">
+                                <label>Notas / Referencia de Pago</label>
+                                {{ pago_form.notas }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('modalPagar{{ factura.id }}')">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" style="background: var(--success-green);"><i class='bx bx-check'></i> Confirmar Liquidación y Liberar PDF</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             {% empty %}
             <tr>
-                <td colspan="7" style="text-align: center; padding: 20px;">No hay facturas registradas.</td>
+                <td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">No hay facturas registradas en el sistema.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -76,20 +136,17 @@
                 <div class="form-group">
                     <label>Orden de Servicio Asociada</label>
                     {{ form.orden }}
+                    <small style="color: var(--text-muted); font-size: 11px;">Los montos de Mano de Obra, Refacciones y Anticipos se calcularán automáticamente.</small>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label>Monto Total ($)</label>
-                        {{ form.total }}
-                    </div>
                     <div class="form-group">
                         <label>Estado del Pago</label>
                         {{ form.estado }}
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Método de Pago</label>
-                    {{ form.metodo_pago }}
+                    <div class="form-group">
+                        <label>Método de Pago</label>
+                        {{ form.metodo_pago }}
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Notas Adicionales</label>
@@ -98,9 +155,25 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalFactura')">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Generar Factura</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Generar Cuenta / Factura</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    document.getElementById('busquedaFacturas').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase().trim();
+        let rows = document.querySelectorAll('#tablaFacturas tbody tr');
+        
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
 {% endblock %}

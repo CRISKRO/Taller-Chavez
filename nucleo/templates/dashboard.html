@@ -9,29 +9,29 @@
     <div class="stat-card blue">
         <div class="stat-icon"><i class='bx bx-clipboard'></i></div>
         <div class="stat-title">Órdenes Activas</div>
-        <div class="stat-value">12</div>
+        <div class="stat-value">{{ ordenes_activas_count }}</div>
     </div>
     <div class="stat-card green">
         <div class="stat-icon"><i class='bx bx-dollar'></i></div>
         <div class="stat-title">Pendiente de Cobro</div>
-        <div class="stat-value">$8,450</div>
+        <div class="stat-value">${{ pendiente_cobro|floatformat:2 }}</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-icon"><i class='bx bx-package'></i></div>
         <div class="stat-title">Items Bajo Stock</div>
-        <div class="stat-value">5</div>
+        <div class="stat-value">{{ bajo_stock_count }}</div>
     </div>
     <div class="stat-card purple">
         <div class="stat-icon"><i class='bx bx-user'></i></div>
-        <div class="stat-title">Clientes Activos</div>
-        <div class="stat-value">87</div>
+        <div class="stat-title">Clientes Registrados</div>
+        <div class="stat-value">{{ clientes_count }}</div>
     </div>
 </div>
 
 <!-- Table -->
 <div class="card-table">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <div class="card-table-header" style="margin-bottom: 0;">Órdenes Recientes</div>
+        <div class="card-table-header" style="margin-bottom: 0;">Órdenes de Trabajo Recientes</div>
         <input type="text" id="busquedaOrdenes" placeholder="Buscar orden..." style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; width: 250px;">
     </div>
     <table id="tablaOrdenes">
@@ -42,30 +42,36 @@
                 <th>VEHÍCULO</th>
                 <th>ESTADO</th>
                 <th>MECÁNICO</th>
+                <th>ACCIÓN</th>
             </tr>
         </thead>
         <tbody>
+            {% for orden in ordenes_recientes %}
             <tr>
-                <td style="color: var(--primary-blue); font-weight: bold;">OT-001</td>
-                <td>Juan Pérez</td>
-                <td>Toyota Corolla 2018</td>
-                <td><span class="badge en-proceso"><i class='bx bx-time'></i> En Proceso</span></td>
-                <td>Carlos R.</td>
+                <td style="color: var(--primary-blue); font-weight: bold;">OT-{{ orden.numero }}</td>
+                <td>{{ orden.cliente.nombre }}</td>
+                <td>{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} ({{ orden.vehiculo.placa }})</td>
+                <td>
+                    {% if orden.estado == 'CONCLUIDO' or orden.estado == 'COMPLETADO' %}
+                        <span class="badge completado"><i class='bx bx-check-double'></i> Concluido</span>
+                    {% elif orden.estado == 'EN_PROCESO' %}
+                        <span class="badge en-proceso"><i class='bx bx-time'></i> En Proceso</span>
+                    {% else %}
+                        <span class="badge recibido"><i class='bx bx-info-circle'></i> Recibido</span>
+                    {% endif %}
+                </td>
+                <td>{{ orden.mecanico.first_name|default:orden.mecanico.username|default:"Sin asignar" }} {{ orden.mecanico.last_name }}</td>
+                <td>
+                    <a href="{% url 'orden_detalle' orden.id %}" style="color: var(--primary-blue); font-size: 13px; font-weight: 600; text-decoration: none;">
+                        Ver Detalle &rarr;
+                    </a>
+                </td>
             </tr>
+            {% empty %}
             <tr>
-                <td style="color: var(--primary-blue); font-weight: bold;">OT-002</td>
-                <td>María García</td>
-                <td>Honda Civic 2020</td>
-                <td><span class="badge completado"><i class='bx bx-check'></i> Completado</span></td>
-                <td>Luis M.</td>
+                <td colspan="6" style="text-align: center; padding: 25px; color: var(--text-muted);">No hay órdenes de servicio recientes.</td>
             </tr>
-            <tr>
-                <td style="color: var(--primary-blue); font-weight: bold;">OT-003</td>
-                <td>Pedro Sánchez</td>
-                <td>Ford Focus 2019</td>
-                <td><span class="badge recibido"><i class='bx bx-info-circle'></i> Recibido</span></td>
-                <td>Sin asignar</td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>
@@ -93,15 +99,17 @@
         <span>Nueva Orden de Servicio</span>
         <small>Crear nueva OT</small>
     </div>
+    {% if request.user.rol == 'ADMIN' or request.user.rol == 'RECEPCIONISTA' %}
     <div class="action-btn green" onclick="window.location.href='{% url 'facturacion_lista' %}'" style="cursor: pointer;">
         <i class='bx bx-dollar-circle'></i>
         <span>Registrar Cobro</span>
-        <small>Nueva factura</small>
+        <small>Caja y facturación</small>
     </div>
     <div class="action-btn purple" onclick="window.location.href='{% url 'clientes_lista' %}'" style="cursor: pointer;">
         <i class='bx bx-user-plus'></i>
-        <span>Nuevo Cliente</span>
+        <span>Nuevo Cliente / Vehículo</span>
         <small>Registrar cliente</small>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

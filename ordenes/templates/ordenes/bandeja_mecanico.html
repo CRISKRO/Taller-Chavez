@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Bandeja Técnica - Taller Chávez{% endblock %}
+{% block page_title %}Bandeja Técnica del Mecánico{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <p style="color: var(--text-muted); margin: 0;">Órdenes de Trabajo asignadas para ejecución técnica y diagnóstico (TC-ORD-01)</p>
+    </div>
+    <div style="background: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--primary-blue); border: 1px solid var(--border-color);">
+        <i class='bx bx-user-check'></i> {{ request.user.first_name|default:request.user.username }}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-icon"><i class='bx bx-wrench'></i></div>
+        <div class="stat-title">Mis Órdenes Asignadas</div>
+        <div class="stat-value">{{ total_asignadas }}</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-icon"><i class='bx bx-time'></i></div>
+        <div class="stat-title">En Proceso</div>
+        <div class="stat-value">{{ en_proceso_count }}</div>
+    </div>
+</div>
+
+<div class="card-table">
+    <div class="card-table-header">Órdenes en mi Piso de Trabajo</div>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+        {% for orden in ordenes %}
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; background: white; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)'" onmouseout="this.style.boxShadow='none'">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; font-size: 18px; color: var(--primary-blue);">OT-{{ orden.numero }}</span>
+                    {% if orden.estado == 'CONCLUIDO' or orden.estado == 'COMPLETADO' %}
+                        <span class="badge completado"><i class='bx bx-check-double'></i> Concluido</span>
+                    {% elif orden.estado == 'EN_PROCESO' %}
+                        <span class="badge en-proceso"><i class='bx bx-time'></i> En Proceso</span>
+                    {% else %}
+                        <span class="badge recibido"><i class='bx bx-info-circle'></i> Recibido</span>
+                    {% endif %}
+                    
+                    {% if orden.prioridad == 'ALTA' %}
+                        <span class="badge" style="background: #ffebee; color: #e53935;">Prioridad Alta</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'orden_detalle' orden.id %}" class="btn btn-primary" style="text-decoration: none; padding: 6px 14px; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class='bx bx-edit'></i> Atender Orden
+                </a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 12px;">
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><i class='bx bx-car'></i> Vehículo</div>
+                    <div style="font-weight: 600; font-size: 15px;">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} ({{ orden.vehiculo.color }})</div>
+                    <div style="font-size: 12px; color: var(--primary-blue); font-weight: 600;">Placa: {{ orden.vehiculo.placa }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><i class='bx bx-user'></i> Cliente</div>
+                    <div style="font-weight: 600;">{{ orden.cliente.nombre }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><i class='bx bx-phone'></i> {{ orden.cliente.telefono }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><i class='bx bx-calendar'></i> Fecha Asignación</div>
+                    <div style="font-weight: 500;">{{ orden.fecha_creacion|date:"d/m/Y H:i" }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Est. {{ orden.tiempo_estimado|default:"N/A" }}</div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; border-radius: 8px; padding: 12px; font-size: 13px;">
+                <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Falla Reportada:</div>
+                <div style="color: var(--text-main);">{{ orden.descripcion }}</div>
+                {% if orden.diagnostico %}
+                <div style="margin-top: 8px; font-weight: 600; color: #1e88e5;">
+                    <i class='bx bx-check-circle'></i> Diagnóstico registrado: <span style="font-weight: normal; color: var(--text-main);">{{ orden.diagnostico|truncatechars:80 }}</span>
+                </div>
+                {% else %}
+                <div style="margin-top: 8px; font-size: 12px; color: #fb8c00; font-weight: 600;">
+                    <i class='bx bx-error-circle'></i> Diagnóstico técnico pendiente de captura.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <i class='bx bx-check-circle' style="font-size: 45px; color: var(--success-green); display: block; margin-bottom: 10px;"></i>
+            No tienes órdenes de trabajo pendientes en tu bandeja técnica.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

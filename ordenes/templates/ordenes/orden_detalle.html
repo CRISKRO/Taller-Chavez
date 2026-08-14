@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle OT-{{ orden.numero }} - Taller Chávez{% endblock %}
+{% block page_title %}Gestión de Orden de Trabajo: OT-{{ orden.numero }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <a href="{% if request.user.rol == 'MECANICO' %}{% url 'ordenes_bandeja' %}{% else %}{% url 'ordenes_lista' %}{% endif %}" style="text-decoration: none; color: var(--primary-blue); font-weight: 500; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+            <i class='bx bx-arrow-back'></i> Volver
+        </a>
+        <h2 style="color: var(--text-main); font-size: 22px; margin: 0;">Orden de Servicio OT-{{ orden.numero }}</h2>
+    </div>
+    
+    <!-- Sequential Quality Gate Controls (TC-ORD-02) -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <form method="POST" action="{% url 'orden_cambiar_estado' orden.id %}" style="display: inline;">
+            {% csrf_token %}
+            {% if orden.estado == 'RECIBIDO' %}
+                <input type="hidden" name="nuevo_estado" value="EN_PROCESO">
+                <button type="submit" class="btn btn-primary" style="background: #1e88e5; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-play'></i> Iniciar Trabajo (En Proceso)
+                </button>
+            {% elif orden.estado == 'EN_PROCESO' %}
+                <input type="hidden" name="nuevo_estado" value="CONCLUIDO">
+                <button type="submit" class="btn btn-primary" style="background: var(--success-green); display: flex; align-items: center; gap: 6px;" onclick="return confirm('¿Confirmas que se completó el trabajo técnico y se descontará el inventario utilizado?')">
+                    <i class='bx bx-check-double'></i> Concluir Orden (Descontar Inventario)
+                </button>
+            {% else %}
+                <span class="badge completado" style="font-size: 14px; padding: 8px 16px;">
+                    <i class='bx bx-check-double'></i> Orden Concluida
+                </span>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Header Info Grid -->
+<div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+    <div>
+        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Vehículo</div>
+        <div style="font-size: 16px; font-weight: bold; color: var(--text-main); margin-top: 4px;">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} ({{ orden.vehiculo.color }})</div>
+        <div style="font-size: 13px; color: var(--primary-blue); font-weight: 600;">Placa: {{ orden.vehiculo.placa }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">VIN: {{ orden.vehiculo.vin|default:"N/A" }}</div>
+    </div>
+    <div>
+        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Cliente</div>
+        <div style="font-size: 16px; font-weight: bold; color: var(--text-main); margin-top: 4px;">{{ orden.cliente.nombre }}</div>
+        <div style="font-size: 13px; color: var(--text-muted);"><i class='bx bx-phone'></i> {{ orden.cliente.telefono }}</div>
+    </div>
+    <div>
+        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Mecánico Asignado</div>
+        <div style="font-size: 15px; font-weight: bold; color: var(--text-main); margin-top: 4px;">
+            {{ orden.mecanico.first_name|default:orden.mecanico.username|default:"Sin asignar" }} {{ orden.mecanico.last_name }}
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);">Estado: <strong>{{ orden.get_estado_display }}</strong></div>
+    </div>
+    <div>
+        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Balance Financiero</div>
+        <div style="font-size: 18px; font-weight: bold; color: var(--text-main); margin-top: 4px;">
+            Total: ${{ orden.total_calculado|floatformat:2 }}
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+            Anticipo: <span style="color: var(--success-green); font-weight: 600;">${{ orden.anticipo|floatformat:2 }}</span> | Saldo: <span style="color: #d32f2f; font-weight: 600;">${{ orden.saldo_pendiente|floatformat:2 }}</span>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+    <!-- Technical Diagnosis & Evidence Form -->
+    <div class="card-table" style="margin-bottom: 0;">
+        <div class="card-table-header" style="display: flex; align-items: center; gap: 8px;">
+            <i class='bx bx-wrench' style="color: var(--primary-blue);"></i>
+            <span>Diagnóstico Técnico y Evidencia Fotográfica</span>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="guardar_diagnostico">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px;">Falla Reportada en Recepción:</label>
+                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px;">
+                    {{ orden.descripcion }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="font-weight: 600;">Diagnóstico Técnico del Mecánico *</label>
+                {{ diagnostico_form.diagnostico }}
+                <small style="color: var(--text-muted); font-size: 11px;">Requerido para poder concluir la orden (Quality Gate).</small>
+            </div>
+
+            <div class="form-group">
+                <label style="font-weight: 600;">Observaciones y Procedimientos Realizados</label>
+                {{ diagnostico_form.observaciones }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label style="font-weight: 600;">Mano de Obra ($)</label>
+                    {{ diagnostico_form.mano_de_obra }}
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 600;">Subir Foto Final (Evidencia)</label>
+                    {{ diagnostico_form.foto_final }}
+                </div>
+            </div>
+
+            <!-- Evidence Photo Previews -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; margin-bottom: 15px;">
+                <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Evidencia Inicial</div>
+                    {% if orden.foto_inicial %}
+                        <img src="{{ orden.foto_inicial.url }}" alt="Foto Inicial" style="max-width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">
+                    {% else %}
+                        <div style="height: 80px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px;">Sin foto inicial</div>
+                    {% endif %}
+                </div>
+                <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Evidencia Final</div>
+                    {% if orden.foto_final %}
+                        <img src="{{ orden.foto_final.url }}" alt="Foto Final" style="max-width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">
+                    {% else %}
+                        <div style="height: 80px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px;">Sin foto final</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if orden.estado != 'CONCLUIDO' and orden.estado != 'COMPLETADO' %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; margin-top: 10px;">
+                <i class='bx bx-save'></i> Guardar Diagnóstico y Avances
+            </button>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Spare Parts & Materials Management -->
+    <div class="card-table" style="margin-bottom: 0;">
+        <div class="card-table-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-package' style="color: var(--primary-blue);"></i>
+                <span>Refacciones y Materiales</span>
+            </div>
+            {% if orden.inventario_descontado %}
+                <span class="badge completado" style="font-size: 11px;"><i class='bx bx-check'></i> Stock Descontado</span>
+            {% endif %}
+        </div>
+
+        {% if orden.estado != 'CONCLUIDO' and orden.estado != 'COMPLETADO' %}
+        <!-- Add Part Form -->
+        <form method="POST" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="agregar_refaccion">
+            <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text-main);">+ Cargar Refacción del Inventario</div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: end;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 11px;">Artículo</label>
+                    {{ refaccion_form.articulo }}
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 11px;">Cantidad</label>
+                    {{ refaccion_form.cantidad }}
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 13px;">
+                        <i class='bx bx-plus'></i> Añadir
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+
+        <!-- Parts Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>REPUESTO</th>
+                    <th>CANT.</th>
+                    <th>P. UNIT.</th>
+                    <th>SUBTOTAL</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ref in orden.refacciones.all %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ ref.articulo.nombre }}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Cód: {{ ref.articulo.codigo }}</div>
+                    </td>
+                    <td style="font-weight: bold;">{{ ref.cantidad }}</td>
+                    <td>${{ ref.precio_unitario }}</td>
+                    <td style="font-weight: bold; color: var(--primary-blue);">${{ ref.subtotal|floatformat:2 }}</td>
+                    <td>
+                        {% if orden.estado != 'CONCLUIDO' and orden.estado != 'COMPLETADO' %}
+                        <a href="{% url 'orden_eliminar_refaccion' ref.id %}" onclick="return confirm('¿Eliminar refacción de la orden?')" style="color: var(--danger-red); font-size: 18px; text-decoration: none;">
+                            <i class='bx bx-trash'></i>
+                        </a>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 12px;">Fijo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        No se han añadido refacciones a esta orden.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals Summary Card -->
+        <div style="margin-top: 20px; background: #fafbfc; border-radius: 8px; padding: 15px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span>Total Refacciones:</span>
+                <span style="font-weight: 600;">${{ orden.total_refacciones|floatformat:2 }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span>Mano de Obra:</span>
+                <span style="font-weight: 600;">${{ orden.mano_de_obra|floatformat:2 }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--success-green);">
+                <span>Anticipo Dejado por Cliente (-):</span>
+                <span style="font-weight: 600;">-${{ orden.anticipo|floatformat:2 }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--primary-blue); padding-top: 8px; font-size: 15px; font-weight: bold; color: var(--primary-blue);">
+                <span>SALDO FINAL A LIQUIDAR:</span>
+                <span>${{ orden.saldo_pendiente|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

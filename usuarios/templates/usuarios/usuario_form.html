@@ -37,6 +37,10 @@
                     {{ form.telefono }}
                 </div>
             </div>
+            <div class="form-group">
+                <label>Nueva Contraseña (dejar en blanco para mantener la actual)</label>
+                {{ form.password }}
+            </div>
         </div>
         <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
             <a href="{% url 'usuarios_lista' %}" class="btn btn-secondary" style="text-decoration: none;">Cancelar</a>

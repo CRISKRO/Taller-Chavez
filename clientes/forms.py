@@ -15,11 +15,13 @@ class ClienteForm(forms.ModelForm):
 class VehiculoForm(forms.ModelForm):
     class Meta:
         model = Vehiculo
-        fields = ['marca', 'modelo', 'anio', 'placa', 'kilometraje']
+        fields = ['marca', 'modelo', 'anio', 'color', 'placa', 'vin', 'kilometraje']
         widgets = {
-            'marca': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'modelo': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'anio': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'placa': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'kilometraje': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'marca': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. Toyota'}),
+            'modelo': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. Corolla'}),
+            'anio': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. 2020'}),
+            'color': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. Rojo Metálico'}),
+            'placa': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. ABC-1234'}),
+            'vin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '17 caracteres (opcional/obligatorio según registro)'}),
+            'kilometraje': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required', 'placeholder': 'Ej. 45000'}),
         }

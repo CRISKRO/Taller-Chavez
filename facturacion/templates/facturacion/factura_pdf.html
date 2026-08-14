@@ -2,24 +2,29 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Factura FAC-{{ factura.id|stringformat:"04d" }}</title>
+    <title>Comprobante de Pago FAC-{{ factura.id|stringformat:"04d" }}</title>
     <style>
         body {
             font-family: Helvetica, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             color: #333;
+            line-height: 1.4;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #1e88e5;
+            padding-bottom: 15px;
         }
         .header h1 {
             color: #1e88e5;
-            margin-bottom: 5px;
+            margin: 0 0 5px 0;
+            font-size: 24px;
         }
         .header p {
             margin: 2px 0;
             color: #666;
+            font-size: 11px;
         }
         .info-box {
             width: 100%;
@@ -29,9 +34,21 @@
             vertical-align: top;
             width: 50%;
         }
+        .card-info {
+            background-color: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .card-info h3 {
+            margin: 0 0 8px 0;
+            color: #1e88e5;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
         .info-label {
             font-weight: bold;
-            color: #555;
+            color: #4b5563;
         }
         .items-table {
             width: 100%;
@@ -39,76 +56,96 @@
             margin-bottom: 20px;
         }
         .items-table th {
-            background-color: #f5f5f5;
-            border-bottom: 2px solid #ddd;
+            background-color: #f3f4f6;
+            border-bottom: 2px solid #d1d5db;
             padding: 8px;
             text-align: left;
             font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
         }
         .items-table td {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e5e7eb;
             padding: 8px;
         }
         .totals-table {
             width: 100%;
+            margin-top: 10px;
         }
         .totals-table td {
-            padding: 5px;
+            padding: 4px 8px;
         }
         .totals-table .totals-label {
             text-align: right;
             font-weight: bold;
-            width: 80%;
+            color: #4b5563;
+            width: 75%;
         }
         .totals-table .totals-value {
             text-align: right;
-            width: 20%;
+            font-weight: bold;
+            width: 25%;
         }
-        .total-row {
-            font-size: 14px;
-            color: #1e88e5;
+        .advance-row td {
+            color: #059669;
+            font-size: 11px;
         }
         .total-row td {
+            font-size: 14px;
+            color: #1e88e5;
             border-top: 2px solid #1e88e5;
+            padding-top: 8px;
             font-weight: bold;
-            padding-top: 10px;
+        }
+        .paid-badge {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
         }
         .footer {
-            margin-top: 50px;
+            margin-top: 40px;
             text-align: center;
-            font-size: 10px;
-            color: #888;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
+            font-size: 9px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 12px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>TALLER CHÁVEZ</h1>
-        <p>Servicio Automotriz Especializado</p>
-        <p>Av. Principal 123, Ciudad</p>
-        <p>Tel: (123) 456-7890 | Email: contacto@tallerchavez.com</p>
+        <h1>TALLER MECÁNICO CHÁVEZ</h1>
+        <p>Servicio Automotriz Especializado y Mantenimiento Integral</p>
+        <p>Av. Principal 123, Ciudad | Tel: (123) 456-7890 | Email: contacto@tallerchavez.com</p>
+        <p><strong>COMPROBANTE DE PAGO Y LIQUIDACIÓN DE SERVICIO</strong></p>
     </div>
 
     <table class="info-box">
         <tr>
             <td>
-                <div style="background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
-                    <h3 style="margin-top: 0; color: #1e88e5; font-size: 14px;">FACTURA A:</h3>
+                <div class="card-info">
+                    <h3>Cliente y Activo Vehicular:</h3>
                     <p><span class="info-label">Cliente:</span> {{ factura.orden.cliente.nombre }}</p>
                     <p><span class="info-label">Teléfono:</span> {{ factura.orden.cliente.telefono|default:"N/A" }}</p>
-                    <p><span class="info-label">Email:</span> {{ factura.orden.cliente.email|default:"N/A" }}</p>
+                    <p><span class="info-label">Vehículo:</span> {{ factura.orden.vehiculo.marca }} {{ factura.orden.vehiculo.modelo }} ({{ factura.orden.vehiculo.anio }})</p>
+                    <p><span class="info-label">Color / Placa:</span> {{ factura.orden.vehiculo.color }} | <strong>{{ factura.orden.vehiculo.placa }}</strong></p>
+                    <p><span class="info-label">VIN:</span> {{ factura.orden.vehiculo.vin|default:"No registrado" }}</p>
                 </div>
             </td>
-            <td style="padding-left: 20px;">
-                <h3 style="margin-top: 0; color: #1e88e5; font-size: 14px;">DETALLES:</h3>
-                <p><span class="info-label">Nº Factura:</span> FAC-{{ factura.id|stringformat:"04d" }}</p>
-                <p><span class="info-label">Fecha Emisión:</span> {{ factura.fecha_emision|date:"d/m/Y" }}</p>
-                <p><span class="info-label">Orden Servicio:</span> OT-{{ factura.orden.numero }}</p>
-                <p><span class="info-label">Estado:</span> {{ factura.get_estado_display }}</p>
-                <p><span class="info-label">Método Pago:</span> {{ factura.get_metodo_pago_display|default:"-" }}</p>
+            <td style="padding-left: 15px;">
+                <div class="card-info">
+                    <h3>Datos del Comprobante:</h3>
+                    <p><span class="info-label">Nº Factura:</span> FAC-{{ factura.id|stringformat:"04d" }}</p>
+                    <p><span class="info-label">Orden de Servicio:</span> OT-{{ factura.orden.numero }}</p>
+                    <p><span class="info-label">Fecha de Emisión:</span> {{ factura.fecha_emision|date:"d/m/Y H:i" }}</p>
+                    <p><span class="info-label">Método de Pago:</span> {{ factura.get_metodo_pago_display|default:"No especificado" }}</p>
+                    <p><span class="info-label">Estado:</span> <span class="paid-badge">LIQUIDADO / PAGADO</span></p>
+                </div>
             </td>
         </tr>
     </table>
@@ -116,45 +153,80 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 70%;">Descripción de Servicios / Repuestos</th>
-                <th style="text-align: right; width: 30%;">Total</th>
+                <th style="width: 15%;">Tipo</th>
+                <th style="width: 45%;">Descripción del Concepto / Refacción</th>
+                <th style="text-align: center; width: 10%;">Cant.</th>
+                <th style="text-align: right; width: 15%;">P. Unitario</th>
+                <th style="text-align: right; width: 15%;">Subtotal</th>
             </tr>
         </thead>
         <tbody>
+            <!-- Mano de Obra -->
             <tr>
-                <td>Servicio(s) correspondiente(s) a la orden OT-{{ factura.orden.numero }}</td>
-                <td style="text-align: right;">${{ factura.subtotal }}</td>
+                <td><strong>Mano de Obra</strong></td>
+                <td>
+                    Servicio técnico y diagnósticos especializados para OT-{{ factura.orden.numero }}
+                    {% if factura.orden.diagnostico %}
+                        <br><small style="color: #666;">Diagnóstico: {{ factura.orden.diagnostico|truncatechars:100 }}</small>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right;">${{ factura.mano_de_obra|floatformat:2 }}</td>
+                <td style="text-align: right; font-weight: bold;">${{ factura.mano_de_obra|floatformat:2 }}</td>
             </tr>
+
+            <!-- Refacciones -->
+            {% for ref in factura.orden.refacciones.all %}
+            <tr>
+                <td>Refacción</td>
+                <td>
+                    {{ ref.articulo.nombre }}
+                    <br><small style="color: #888;">Cód: {{ ref.articulo.codigo }}</small>
+                </td>
+                <td style="text-align: center;">{{ ref.cantidad }}</td>
+                <td style="text-align: right;">${{ ref.precio_unitario|floatformat:2 }}</td>
+                <td style="text-align: right; font-weight: bold;">${{ ref.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            {% endfor %}
         </tbody>
     </table>
 
     <table class="totals-table">
         <tr>
-            <td class="totals-label">Subtotal:</td>
-            <td class="totals-value">${{ factura.subtotal }}</td>
+            <td class="totals-label">Subtotal (Mano de Obra + Refacciones):</td>
+            <td class="totals-value">${{ factura.subtotal|floatformat:2 }}</td>
         </tr>
         <tr>
-            <td class="totals-label">IVA (12%):</td>
-            <td class="totals-value">${{ factura.iva }}</td>
+            <td class="totals-label">IVA (16%):</td>
+            <td class="totals-value">${{ factura.iva|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td class="totals-label">Costo Total del Servicio:</td>
+            <td class="totals-value">${{ factura.total|floatformat:2 }}</td>
+        </tr>
+        <tr class="advance-row">
+            <td class="totals-label">Anticipo Pagado por el Cliente (-):</td>
+            <td class="totals-value">-${{ factura.anticipo_aplicado|floatformat:2 }}</td>
         </tr>
         <tr class="total-row">
-            <td class="totals-label">TOTAL:</td>
-            <td class="totals-value">${{ factura.total }}</td>
+            <td class="totals-label">TOTAL LIQUIDADO EN CAJA:</td>
+            <td class="totals-value">${{ factura.saldo_pendiente|floatformat:2 }}</td>
         </tr>
     </table>
 
     {% if factura.notas %}
-    <div style="margin-top: 30px;">
-        <h4 style="color: #555; margin-bottom: 5px;">Notas Adicionales:</h4>
-        <p style="background-color: #f9f9f9; padding: 10px; border-left: 3px solid #1e88e5;">
+    <div style="margin-top: 20px;">
+        <div style="font-weight: bold; color: #4b5563; font-size: 11px; margin-bottom: 4px;">Observaciones y Notas:</div>
+        <div style="background-color: #f9fafb; padding: 8px 12px; border-left: 3px solid #1e88e5; font-size: 10px; color: #555;">
             {{ factura.notas }}
-        </p>
+        </div>
     </div>
     {% endif %}
 
     <div class="footer">
-        <p>Gracias por su preferencia. Taller Chávez - Reparaciones garantizadas.</p>
-        <p>Documento generado el {% now "d/m/Y H:i" %}</p>
+        <p>Garantía de servicio: 30 días o 1,000 km en mano de obra. Refacciones según garantía del fabricante.</p>
+        <p>Taller Mecánico Chávez — Comprobante oficial generado el {% now "d/m/Y H:i" %}</p>
     </div>
 
 </body>

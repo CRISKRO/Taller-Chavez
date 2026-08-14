@@ -75,9 +75,9 @@
                     
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 10px;">{{ orden.fecha_creacion|date:"Y-m-d" }}</span>
                 </div>
-                <button style="background: transparent; color: var(--primary-blue); border: 1px solid var(--primary-blue); padding: 5px 15px; border-radius: 15px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                    <i class='bx bx-show'></i> Ver Detalles
-                </button>
+                <a href="{% url 'orden_detalle' orden.id %}" style="background: transparent; color: var(--primary-blue); border: 1px solid var(--primary-blue); padding: 6px 15px; border-radius: 15px; font-size: 13px; font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                    <i class='bx bx-show'></i> Ver Detalles / Atender
+                </a>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
@@ -88,11 +88,11 @@
                 <div>
                     <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-car'></i> Vehículo</div>
                     <div style="font-weight: 600;">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }}</div>
-                    <div style="font-size: 12px; color: var(--text-muted);">{{ orden.vehiculo.placa }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">{{ orden.vehiculo.placa }} ({{ orden.vehiculo.color }})</div>
                 </div>
                 <div>
                     <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-wrench'></i> Mecánico</div>
-                    <div style="font-weight: 600;">{{ orden.mecanico.first_name|default:"Sin asignar" }} {{ orden.mecanico.last_name }}</div>
+                    <div style="font-weight: 600;">{{ orden.mecanico.first_name|default:orden.mecanico.username|default:"Sin asignar" }} {{ orden.mecanico.last_name }}</div>
                 </div>
                 <div>
                     <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;"><i class='bx bx-time-five'></i> Tiempo Estimado</div>
@@ -101,12 +101,13 @@
             </div>
             
             <div style="background: var(--light-bg); border-radius: 8px; padding: 15px;">
-                <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Servicios a Realizar:</div>
-                <div style="display: flex; gap: 10px;">
-                    <span style="background: white; border: 1px solid var(--border-color); padding: 5px 15px; border-radius: 20px; font-size: 13px;">{{ orden.descripcion|default:"Revisión general"|truncatechars:50 }}</span>
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Falla Reportada / Servicios:</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <span style="background: white; border: 1px solid var(--border-color); padding: 5px 15px; border-radius: 20px; font-size: 13px;">{{ orden.descripcion|default:"Revisión general"|truncatechars:70 }}</span>
                 </div>
-                <div style="margin-top: 15px; font-size: 14px;">
-                    Costo estimado: <span style="font-weight: bold; color: var(--text-main);">${{ orden.costo_estimado }}</span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+                    <span>Costo Calculado / Estimado: <strong style="color: var(--text-main);">${{ orden.total_calculado|default:orden.costo_estimado }}</strong></span>
+                    <span>Anticipo: <strong style="color: var(--success-green);">${{ orden.anticipo }}</strong> | Saldo: <strong style="color: #d32f2f;">${{ orden.saldo_pendiente }}</strong></span>
                 </div>
             </div>
         </div>
@@ -118,12 +119,12 @@
 
 <!-- Modal Nueva Orden -->
 <div class="modal-overlay" id="modalOrden">
-    <div class="modal-container" style="max-width: 600px;">
+    <div class="modal-container" style="max-width: 650px;">
         <div class="modal-header">
             <h3>Nueva Orden de Servicio</h3>
             <i class='bx bx-x modal-close' onclick="closeModal('modalOrden')"></i>
         </div>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="modal-body">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -144,16 +145,16 @@
                         {{ form.vehiculo }}
                     </div>
                     <div class="form-group">
-                        <label>Mecánico Asignado</label>
+                        <label>Mecánico Asignado (TC-ORD-01)</label>
                         {{ form.mecanico }}
                     </div>
                     <div class="form-group">
-                        <label>Estado</label>
-                        {{ form.estado }}
+                        <label>Anticipo Pagado ($)</label>
+                        {{ form.anticipo }}
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Descripción de los Servicios</label>
+                    <label>Descripción de Falla / Solicitud del Cliente</label>
                     {{ form.descripcion }}
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -166,10 +167,14 @@
                         {{ form.tiempo_estimado }}
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>Foto Inicial del Vehículo (Evidencia de Entrada)</label>
+                    {{ form.foto_inicial }}
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalOrden')">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar Orden</button>
+                <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> Guardar y Abrir OT</button>
             </div>
         </form>
     </div>
