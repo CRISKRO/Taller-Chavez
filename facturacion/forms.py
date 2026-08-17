@@ -22,4 +22,7 @@ class RegistrarPagoForm(forms.ModelForm):
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Detalles de la transacción o referencia...'}),
         }
  
-           
+
+
+
+    
